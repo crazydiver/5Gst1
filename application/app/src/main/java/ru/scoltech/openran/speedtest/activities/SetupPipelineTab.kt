@@ -1,21 +1,28 @@
 package ru.scoltech.openran.speedtest.activities
 
+import android.media.Image
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.widget.ListView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
 import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import com.google.android.material.textfield.TextInputEditText
 import ru.scoltech.openran.speedtest.R
+import ru.scoltech.openran.speedtest.adapters.PipelineAdapter
 import ru.scoltech.openran.speedtest.domain.StageConfiguration
 import ru.scoltech.openran.speedtest.parser.StageConfigurationParser
+import ru.scoltech.openran.speedtest.util.Pipeline
+import ru.scoltech.openran.speedtest.util.SharedStorageController
 
 
 class SetupPipelineTab : Fragment() {
@@ -29,6 +36,7 @@ class SetupPipelineTab : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        SharedStorageController.init(context)
         return inflater.inflate(R.layout.fragment_setup_pipeline, container, true)
     }
 
@@ -68,15 +76,33 @@ class SetupPipelineTab : Fragment() {
             })
     }
 
+
+    private fun initList() : ArrayList<Pipeline>{
+        val aa = SharedStorageController.getAllPipelines(context?.resources?.getString(
+        R.string.pipeline_shared_storage_name))
+        return aa;
+    }
+//TODO: position адаптера пайплайна не изменяется, все время имеет значение 0
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val pipelineLayout = view.findViewById<LinearLayout>(R.id.new_pipelines)
+        val context = context as OptionsActivity
 
+        val pipelineLayout = view.findViewById(R.id.pipeline_listview) as ListView
+        val placeAdapter = PipelineAdapter(context, initList())
+
+//            context?.let { PipelineAdapter(it, initList()) }
+        pipelineLayout.adapter = placeAdapter
+
+
+//TODO: ниже закомменченный код - старый код редактора пайплайнов
+/*
         val pipelinePreferences = requireActivity().getSharedPreferences(
-            "iperf_args_pipeline",
+            context?.resources?.getString(R.string.pipeline_shared_storage_name),
             AppCompatActivity.MODE_PRIVATE,
         )
+
+
 
         stageConfigurationParser.parseFromPreferences(pipelinePreferences, this::getString)
             .forEach { (preferencesKey, stageConfiguration) ->
@@ -95,5 +121,6 @@ class SetupPipelineTab : Fragment() {
                 addSerializationListener(deviceArgsView, stageView, preferencesKey)
                 addSerializationListener(serverArgsView, stageView, preferencesKey)
             }
+*/
     }
 }
